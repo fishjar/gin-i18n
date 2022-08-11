@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	const defaultLang = "zh-CN"                           // 默认语言
-	const supportLang = "zh-CN,en-US"                     // 支持的语言列表(必须包含默认语言)
-	var filePath = path.Join("./", "example", "localize") // 语言文件目录
+	const defaultLang = "zh-CN"                          // 默认语言
+	const supportLang = "zh-CN,en-US"                    // 支持的语言列表(必须包含默认语言)
+	var filePath = path.Join(".", "example", "localize") // 语言文件目录
 
 	// localizer init
 	ginI18n.LocalizerInit(defaultLang, supportLang, filePath)

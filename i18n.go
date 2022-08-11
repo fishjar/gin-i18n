@@ -3,7 +3,6 @@ package i18n
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path"
 	"strings"
 	"sync"
@@ -39,7 +38,7 @@ func (l localize) matchUserLang(s string) language.Tag {
 
 func newLocalize(defaultLang language.Tag, supportLangs []language.Tag, filePath string) *localize {
 	if !tagContains(supportLangs, defaultLang) {
-		log.Fatal("supportLangs must contains defaultLang")
+		panic("supportLangs must contains defaultLang")
 	}
 
 	messages := make(map[language.Tag]message, len(supportLangs))
@@ -47,10 +46,10 @@ func newLocalize(defaultLang language.Tag, supportLangs []language.Tag, filePath
 		var message message
 		f, err := ioutil.ReadFile(path.Join(filePath, fmt.Sprintf("%s.yml", lang)))
 		if err != nil {
-			log.Fatal("read lang file: %w", err)
+			panic(err)
 		}
 		if err := yaml.Unmarshal(f, &message); err != nil {
-			log.Fatal("unmarshal lang file: %w", err)
+			panic(err)
 		}
 		messages[lang] = message
 	}
@@ -71,6 +70,9 @@ var localizer *localize
 var once sync.Once
 
 func LocalizerInit(defaultLang string, supportLang string, filePath string) {
+	if len(defaultLang) == 0 || len(supportLang) == 0 {
+		panic("bad defaultLang or supportLang")
+	}
 	once.Do(func() {
 		var supportLangs []language.Tag
 		for _, s := range strings.Split(supportLang, ",") {
