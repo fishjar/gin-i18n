@@ -28,8 +28,8 @@ func (l localize) matchUserLang(s string) language.Tag {
 
 	for _, lang := range langs {
 		for _, support := range l.supportLangs {
-			if lang == support {
-				return lang
+			if strings.HasPrefix(support.String(), lang.String()) {
+				return support
 			}
 		}
 	}
