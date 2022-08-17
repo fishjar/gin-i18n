@@ -24,7 +24,7 @@ func main() {
 	const supportLang = "zh-CN,en-US"               // 支持的语言列表 ​​(必须包含默认语言)
 	var filePath = path.Join("example", "localize") // 多语言文件所在目录
 
-	// 应用配置
+	// 初始化设置
 	ginI18n.LocalizerInit(defaultLang, supportLang, filePath)
 
 	// new gin engine

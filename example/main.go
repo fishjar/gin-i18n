@@ -14,7 +14,7 @@ func main() {
 	const supportLang = "zh-CN,en-US"               // list of supported languages ​​(must include default language)
 	var filePath = path.Join("example", "localize") // multilingual file directory
 
-	// localizer init
+	// initialize settings
 	ginI18n.LocalizerInit(defaultLang, supportLang, filePath)
 
 	// new gin engine
