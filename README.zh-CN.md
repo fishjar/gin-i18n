@@ -1,10 +1,10 @@
-# Simple gin i18n middleware
+# 简单的 gin 多语言支持中间件
 
-English | [简体中文](README.zh-CN.md)
+[English](README.md) | 简体中文
 
-I found that other people's `gin` i18n middleware too complicated, so I wrote a simple one.
+发现网上的 `gin` 多语言中间件都太复杂了，于是自己动手写了个简单的。
 
-## Example
+## 示例
 
 ```go
 // example/main.go
@@ -20,18 +20,18 @@ import (
 )
 
 func main() {
-	const defaultLang = "zh-CN"                     // default language
-	const supportLang = "zh-CN,en-US"               // list of supported languages ​​(must include default language)
-	var filePath = path.Join("example", "localize") // multilingual file directory
+	const defaultLang = "zh-CN"                     // 默认语言
+	const supportLang = "zh-CN,en-US"               // 支持的语言列表 ​​(必须包含默认语言)
+	var filePath = path.Join("example", "localize") // 多语言文件所在目录
 
-	// localizer init
+	// 应用配置
 	ginI18n.LocalizerInit(defaultLang, supportLang, filePath)
 
 	// new gin engine
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
-	// apply i18n middleware
+	// 应用中间件
 	router.Use(ginI18n.GinLocalizer())
 
 	router.GET("/", func(c *gin.Context) {
@@ -63,7 +63,7 @@ hello_world: hello %s!
 ```
 
 ```sh
-# review
+# 检查效果
 go run example/main.go
 
 curl http://127.0.0.1:8080/ -H 'accept-language: zh-CN'             # 欢迎！
