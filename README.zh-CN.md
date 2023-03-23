@@ -20,28 +20,22 @@ import (
 )
 
 func main() {
-	const defaultLang = "zh-CN"                     // 默认语言
-	const supportLang = "zh-CN,en-US"               // 支持的语言列表 ​​(必须包含默认语言)
-	var filePath = path.Join("example", "localize") // 多语言文件所在目录
-
-	// 初始化设置
-	ginI18n.LocalizerInit(defaultLang, supportLang, filePath)
-
-	// new gin engine
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
-	// 应用中间件
-	router.Use(ginI18n.GinLocalizer())
+	// apply i18n middleware
+	router.Use(ginI18n.Localizer(&ginI18n.Options{
+		DefaultLang:  "zh-CN",                          // 默认语言
+		SupportLangs: "zh-CN,en-US",                    // 支持的语言列表 ​​(必须包含默认语言)
+		FilePath:     path.Join("example", "localize"), // 多语言文件所在目录
+	}))
 
 	router.GET("/", func(c *gin.Context) {
-		localizer := c.MustGet("Localizer").(*ginI18n.UserLocalize)
-		c.String(http.StatusOK, localizer.GetMsg("welcome"))
+		c.String(http.StatusOK, ginI18n.Msg(c, "welcome"))
 	})
 
 	router.GET("/:name", func(c *gin.Context) {
-		localizer := c.MustGet("Localizer").(*ginI18n.UserLocalize)
-		c.String(http.StatusOK, localizer.GetMsg("hello_world", c.Param("name")))
+		c.String(http.StatusOK, ginI18n.Msg(c, "hello_world", c.Param("name")))
 	})
 
 	if err := router.Run(":8080"); err != nil {

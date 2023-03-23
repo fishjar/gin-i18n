@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"path"
 	"strings"
-	"sync"
 
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v2"
@@ -19,16 +18,16 @@ type localize struct {
 	messages     map[language.Tag]message
 }
 
-func (l localize) matchUserLang(s string) language.Tag {
-	langs, _, err := language.ParseAcceptLanguage(s)
+func (l *localize) matchUserLang(acceptStr string) language.Tag {
+	acceptLangs, _, err := language.ParseAcceptLanguage(acceptStr)
 	if err != nil {
 		return l.defaultLang
 	}
 
-	for _, lang := range langs {
-		for _, support := range l.supportLangs {
-			if strings.HasPrefix(support.String(), lang.String()) {
-				return support
+	for _, acceptLang := range acceptLangs {
+		for _, supportLang := range l.supportLangs {
+			if strings.HasPrefix(supportLang.String(), acceptLang.String()) {
+				return supportLang
 			}
 		}
 	}
@@ -36,7 +35,21 @@ func (l localize) matchUserLang(s string) language.Tag {
 	return l.defaultLang
 }
 
-func newLocalize(defaultLang language.Tag, supportLangs []language.Tag, filePath string) *localize {
+func (l *localize) userLocalize(acceptStr string) *userLocalize {
+	userLang := l.matchUserLang(acceptStr)
+
+	return &userLocalize{
+		l,
+		userLang,
+	}
+}
+
+func newLocalize(defaultStr, supportStr, filePath string) *localize {
+	defaultLang := language.Make(defaultStr)
+	var supportLangs []language.Tag
+	for _, s := range strings.Split(supportStr, ",") {
+		supportLangs = append(supportLangs, language.Make(strings.TrimSpace(s)))
+	}
 	if !tagContains(supportLangs, defaultLang) {
 		panic("supportLangs must contains defaultLang")
 	}
@@ -66,47 +79,24 @@ func tagContains(tags []language.Tag, t language.Tag) bool {
 	return false
 }
 
-var localizer *localize
-var once sync.Once
-
-func LocalizerInit(defaultLang string, supportLang string, filePath string) {
-	if len(defaultLang) == 0 || len(supportLang) == 0 {
-		panic("bad defaultLang or supportLang")
-	}
-	once.Do(func() {
-		var supportLangs []language.Tag
-		for _, s := range strings.Split(supportLang, ",") {
-			supportLangs = append(supportLangs, language.Make(strings.TrimSpace(s)))
-		}
-		localizer = newLocalize(language.Make(defaultLang), supportLangs, filePath)
-	})
-}
-
-type UserLocalize struct {
-	localize *localize
+type userLocalize struct {
+	l        *localize
 	userLang language.Tag
 }
 
-func (u *UserLocalize) GetMsg(messageID string, a ...interface{}) string {
-	var format string
-
-	if u.localize == nil {
-		return format
+func (u *userLocalize) getMsg(tag string, args ...interface{}) (msg string) {
+	if u.l == nil {
+		return
 	}
 
-	if s, ok := u.localize.messages[u.userLang][messageID]; ok {
-		format = s
+	if s, ok := u.l.messages[u.userLang][tag]; ok {
+		msg = s
 	} else {
-		format = u.localize.messages[u.localize.defaultLang][messageID]
+		msg = u.l.messages[u.l.defaultLang][tag]
 	}
-	if len(format) > 0 && len(a) > 0 {
-		return fmt.Sprintf(format, a...)
+	if len(msg) > 0 && len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
 	}
 
-	return format
-}
-
-func NewUserLocalize(acceptLang string) *UserLocalize {
-	userLang := localizer.matchUserLang(acceptLang)
-	return &UserLocalize{localizer, userLang}
+	return
 }

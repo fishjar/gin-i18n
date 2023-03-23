@@ -10,28 +10,22 @@ import (
 )
 
 func main() {
-	const defaultLang = "zh-CN"                     // default language
-	const supportLang = "zh-CN,en-US"               // list of supported languages ​​(must include default language)
-	var filePath = path.Join("example", "localize") // multilingual file directory
-
-	// initialize settings
-	ginI18n.LocalizerInit(defaultLang, supportLang, filePath)
-
-	// new gin engine
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
 	// apply i18n middleware
-	router.Use(ginI18n.GinLocalizer())
+	router.Use(ginI18n.Localizer(&ginI18n.Options{
+		DefaultLang:  "zh-CN",                          // default language
+		SupportLangs: "zh-CN,en-US",                    // list of supported languages ​​(must include default language)
+		FilePath:     path.Join("example", "localize"), // multilingual file directory
+	}))
 
 	router.GET("/", func(c *gin.Context) {
-		localizer := c.MustGet("Localizer").(*ginI18n.UserLocalize)
-		c.String(http.StatusOK, localizer.GetMsg("welcome"))
+		c.String(http.StatusOK, ginI18n.Msg(c, "welcome"))
 	})
 
 	router.GET("/:name", func(c *gin.Context) {
-		localizer := c.MustGet("Localizer").(*ginI18n.UserLocalize)
-		c.String(http.StatusOK, localizer.GetMsg("hello_world", c.Param("name")))
+		c.String(http.StatusOK, ginI18n.Msg(c, "hello_world", c.Param("name")))
 	})
 
 	if err := router.Run(":8080"); err != nil {
